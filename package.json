@@ -1,0 +1,20 @@
+{
+  "name": "url-shortener",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "Aizat Faiz <aizat.faiz@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "aws-sdk": "^2.395.0",
+    "base58": "^2.0.1",
+    "serverless-dynamodb-local": "0.2.30",
+    "serverless-offline": "^4.2.1",
+    "uuid": "^3.3.2"
+  },
+  "devDependencies": {
+    "eslint": "^5.12.1",
+    "eslint-config-airbnb-base": "^13.1.0",
+    "eslint-config-aizatto": "https://github.com/aizatto/eslint-config-aizatto",
+    "eslint-plugin-import": "^2.16.0"
+  }
+}
