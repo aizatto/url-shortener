@@ -93,6 +93,7 @@ module.exports.create = async (event) => {
     statusCode: 200,
     body: JSON.stringify({
       id: uuid,
+      url: `${process.env.ENDPOINT}${uuid}`
     }),
   };
 };
@@ -102,7 +103,7 @@ module.exports.redirect = async (event) => {
   const result = await dynamodb.getPromise({
     TableName: process.env.TABLE_NAME,
     Key: {
-      uuid: event.pathParameters.base58id,
+      id: event.pathParameters.base58id,
     },
   });
 
@@ -118,7 +119,7 @@ module.exports.redirect = async (event) => {
   return {
     statusCode: 301,
     headers: {
-      Location: result.Item.url,
+      Location: result.Item.longURL,
     },
   };
 };

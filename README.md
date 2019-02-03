@@ -16,9 +16,21 @@ Goal of this project:
 
 Cannot use Go lang because you cannot invoke functions locally, though I didn't really use that for this.
 
-## Disclaimer
+## Warnings, Disclaimer, Gotchas
 
-This code isn't perfect. It's been cobbled from many different examples and sources you can find in the "Resources" section below.
+- I am new to all this serverless infrastructure. Keeping notes at:
+  - https://www.aizatto.com/notes/serverless/
+  - https://www.aizatto.com/notes/aws/
+  - https://www.aizatto.com/notes/aws/dynamodb/
+- This code isn't perfect. It's been cobbled from many different examples and sources you can find in the "Resources" section below.
+- Not familiar with the best optimizations
+- Serverless (as in the tool) will drop your tables if you change the name of the tables. You haev been warned.
+- I don't fully understand the limitations of DynamoDB
+  - Costs
+  - Performance limitations
+  - Scaling
+  - Backup
+  - [Best Practices](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/best-practices.html)
 
 # TODO / Bugs / Improvements / Features
 
@@ -57,6 +69,8 @@ brew cask install java
 
 # Install
 
+Optional: Configure `secrets.json` (copy from `secrets.example.json`.
+
 ```sh
 yarn install
 sls dynamodb install --stage dev
@@ -92,9 +106,11 @@ curl -v http://localhost:3000/
 
 ## Create Short URL (Without Authentication)
 
-`serverless-offline` doesn't support `aws_iam` authentication, so feel free to ignore if testing online.
+`serverless-offline` doesn't support `aws_iam` authentication, so feel free to ignore if testing offline.
 
 To disable authentication, disable/delete the `authorizer: aws_iam` line in `serverless.yml`
+
+To test, call:
 
 
 ```sh
@@ -117,6 +133,34 @@ Because we need to authenticate in order to create a short url see (test.js is n
 SLS_DEBUG=* sls deploy --stage dev --region ap-southeast-1
 ```
 
+# Create IAM User
+
+In order to use authentication you have to create a new user with the correct policy.
+
+Visit https://console.aws.amazon.com/iam/home?#/users and create a user, I call it `url-shortener`.
+
+```json
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "execute-api:Invoke",
+                "execute-api:InvalidateCache"
+            ],
+            "Resource": [
+                "arn:aws:execute-api:*:*:$DOMAIN/$STAGE/POST"
+            ]
+        }
+    ]
+}
+```
+
+Replace $DOMAIN and $STAGE.
+
+Use the `Access Key ID` and `Secret Access Key` to make requests to your endpoint.
+
 # Custom Domain
 
 I couldn't use Namecheap because, AWS Custom Domain requires the `A Record` to support an `Alias Target`. So I pointed my Nameservers to AWS Route 53.
@@ -128,11 +172,12 @@ AWS Route 53 doesn't support `.app` domains, so I couldn't transfer the domain o
 - Point nameservers in Namecheap to new custom records
 - [Create ACM Certificate](https://docs.aws.amazon.com/apigateway/latest/developerguide/how-to-custom-domains-prerequisites.html)
 - [Create Edge-Optimized Custom Domain Name](https://docs.aws.amazon.com/apigateway/latest/developerguide/how-to-edge-optimized-custom-domain-name.html)
+  - If you do not want to use a subdomain, you can leave the `Name` field blank in `Create Record Set`
 
 Command line to check NS:
 
 ```sh
-host -t ns deepthought.app
+host -t ns example.com
 ```
 
 - https://serverless.com/blog/serverless-api-gateway-domain/
@@ -147,6 +192,18 @@ custom:
     stage: ${opt:stage}
     createRoute53Record: true
 ```
+
+# Manual Setup
+
+- DynamoDB
+  - https://console.aws.amazon.com/dynamodb/
+  - Backup
+    - On-Demand Backup
+    - Point-in-Time Recovery
+      - Enable "Point-in-time Recovery"
+      - Maximum 35 days
+      - https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/PointInTimeRecovery_Howitworks.html
+  - Global Tables
 
 # DynamoDB Shell
 
@@ -260,10 +317,17 @@ Why JavaScript?
 
 Naming conventions:
 
-- ${stage} as a prefix
+- `${stage}` as a prefix
   - API Gateway uses it as the basepath, so I figure we should just use it in the beginning
   - Visually groups the same stage together
 
 Should the default be to reuse a shorturl or create a new one?
 
 - Currently opting to create a new one
+
+Why did you not use Cognito?
+
+- I didn't want to manage yet another service
+- I didn't want to learn more
+- I didn't want to increase complexity
+- Focusing on MVP
