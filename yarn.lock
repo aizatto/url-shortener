@@ -88,7 +88,7 @@ astral-regex@^1.0.0:
   resolved "https://registry.yarnpkg.com/astral-regex/-/astral-regex-1.0.0.tgz#6c8c3fb827dd43ee3918f27b82782ab7658a6fd9"
   integrity sha512-+Ryf6g3BKoRc7jfp7ad8tM4TtMiaWvbF/1/sQcZPkkS7ag3D5nMBCe2UfOTONtAkaG0tO0ij3C5Lwmf1EiyjHg==
 
-aws-sdk@^2.395.0, aws-sdk@^2.7.0:
+aws-sdk@^2.177.0, aws-sdk@^2.395.0, aws-sdk@^2.7.0:
   version "2.395.0"
   resolved "https://registry.yarnpkg.com/aws-sdk/-/aws-sdk-2.395.0.tgz#637e5fa06d69bfb923b17bde24a8bd2a74dedab3"
   integrity sha512-ldTTjctniZT4E2lq2z3D8Y2u+vpkp+laoEnDkXgjKXTKbiJ0QEtfWsUdx/IQ7awCt8stoxyqZK47DJOxIbRNoA==
@@ -210,7 +210,7 @@ catbox@7.x.x:
     hoek "4.x.x"
     joi "10.x.x"
 
-chalk@^2.0.0, chalk@^2.1.0, chalk@^2.4.2:
+chalk@^2.0.0, chalk@^2.0.1, chalk@^2.1.0, chalk@^2.4.2:
   version "2.4.2"
   resolved "https://registry.yarnpkg.com/chalk/-/chalk-2.4.2.tgz#cd42541677a54333cf541a49108c1432b44c9424"
   integrity sha512-Mti+f9lpJNcwF4tWV8/OrTTtF1gZi+f8FqlyAdouralcFWFQWF2+NgCHShjkCb+IFBLq9buZwE1xckQU4peSuQ==
@@ -1429,6 +1429,14 @@ sax@>=0.6.0:
   version "5.6.0"
   resolved "https://registry.yarnpkg.com/semver/-/semver-5.6.0.tgz#7e74256fbaa49c75aa7c7a205cc22799cac80004"
   integrity sha512-RS9R6R35NYgQn++fkDWaOmqGoj4Ek9gGs+DPxNUZKuwE183xjJroKvyo1IzVFeXvUrvmALy6FWD5xrdJT25gMg==
+
+serverless-domain-manager@^2.6.13:
+  version "2.6.13"
+  resolved "https://registry.yarnpkg.com/serverless-domain-manager/-/serverless-domain-manager-2.6.13.tgz#64e398cbd26b113e096887eb063a43caf1ed12a1"
+  integrity sha512-oMV4OPbTo9IWzaRwvQl8H+sdXGCNraO+92g48RrS1AmbRQf9+w6gycNy3o+uE/LlAQnYrbuNSE1VD0zeKRh4uw==
+  dependencies:
+    aws-sdk "^2.177.0"
+    chalk "^2.0.1"
 
 serverless-dynamodb-local@0.2.30:
   version "0.2.30"

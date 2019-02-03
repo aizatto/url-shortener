@@ -18,6 +18,7 @@ service: url-shortener # NOTE: update this with your service name
 # frameworkVersion: "=X.X.X"
 
 plugins:
+  - serverless-domain-manager
   - serverless-dynamodb-local
   - serverless-offline
 
@@ -25,7 +26,9 @@ provider:
   name: aws
   runtime: nodejs8.10
   environment:
-    DYNAMODB_TABLE: ${self:service}-${opt:stage, self:provider.stage}
+    TABLE_NAME: ${opt:stage}-${self:service}-test
+    TABLE_INDEX_NAME: ${opt:stage}-${self:service}-URLIndex
+    COUNTER_TABLE_NAME: ${opt:stage}-${self:service}-counter
   memorySize: 128
   iamRoleStatements:
     - Effect: Allow
@@ -37,7 +40,7 @@ provider:
         - dynamodb:UpdateItem
         - dynamodb:DeleteItem
       Resource: 
-        - "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.DYNAMODB_TABLE}"
+        - "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.TABLE_NAME}"
         - "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/counters-${opt:stage}"
   
 
@@ -88,6 +91,8 @@ functions:
       - http:
           path: /
           method: post
+          cors: true
+          authorizer: aws_iam
 
   redirect:
     handler: handler.redirect
@@ -140,31 +145,38 @@ functions:
 #     NewOutput:
 #       Description: "Description for the output"
 #       Value: "Some output value"
+#
+# Avoid DynamoDB Reserved Keywords:
+#
+# - name
+# - uuid
+# - url
+# - value
 resources:
   Resources:
     urlsTable:
       Type: 'AWS::DynamoDB::Table'
       DeletionPolicy: Retain
       Properties:
-        TableName: ${self:provider.environment.DYNAMODB_TABLE}
+        TableName: ${self:provider.environment.TABLE_NAME}
         AttributeDefinitions:
           -
-            AttributeName: uuid
+            AttributeName: id
             AttributeType: S
           -
-            AttributeName: url
+            AttributeName: longURL
             AttributeType: S
         KeySchema:
           -
-            AttributeName: uuid
+            AttributeName: id
             KeyType: HASH
         ProvisionedThroughput:
           ReadCapacityUnits: 1
           WriteCapacityUnits: 1
         GlobalSecondaryIndexes:
-          - IndexName: sls-url-shortener-trackers-${opt:stage}
+          - IndexName: ${self:provider.environment.TABLE_INDEX_NAME}
             KeySchema:
-              - AttributeName: url
+              - AttributeName: longURL
                 KeyType: HASH
             Projection:
               ProjectionType: "ALL"
@@ -175,14 +187,14 @@ resources:
       Type: 'AWS::DynamoDB::Table'
       DeletionPolicy: Retain
       Properties:
-        TableName: counters-${opt:stage}
+        TableName: ${self:provider.environment.COUNTER_TABLE_NAME}
         AttributeDefinitions:
           -
-            AttributeName: name
+            AttributeName: counterName
             AttributeType: S
         KeySchema:
           -
-            AttributeName: name
+            AttributeName: counterName
             KeyType: HASH
         ProvisionedThroughput:
           ReadCapacityUnits: 1
@@ -191,15 +203,18 @@ resources:
 custom:
   dynamodb:
     start:
-      migrate: true
-      seed: true
-
-dynamodb:
-  start:
-    seed: true
-  seed:
-    counters:
-      domain:
-        - 
-          table: counters-${opt:stage}
-          sources: [./seed/counters.json]
+      inMemory: false
+      dbPath: ${env:PWD}/.dynamodb
+    seed:
+      counters: # This key name is irrelevant
+        sources:
+          -
+            table: ${self:provider.environment.COUNTER_TABLE_NAME}
+            sources: [./seed/counters.json]
+  customDomain:
+    domainName: ${opt:domain-name}
+    basePath: ''
+    stage: ${opt:stage}
+    createRoute53Record: true
+    enabled: ${opt:custom-domain-enabled, 'false'}
+    

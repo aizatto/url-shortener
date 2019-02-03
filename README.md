@@ -10,15 +10,30 @@ Goal of this project:
   - Achieving this via using base58 on incremental ids
   - Incremental IDs
   - I think this is OK because I am not planning to have that many urls
+- Reserve shortest URLs
+  - Since using incremental ids, we can start from an offset
+- Authentication using AWS IAM
 
 Cannot use Go lang because you cannot invoke functions locally, though I didn't really use that for this.
 
-# TODO / Bugs
+## Disclaimer
 
-- Authentication
-  - At the moment anyone can create a short url
-- Implement custom domain support
-- Fix dynamodb local seeding
+This code isn't perfect. It's been cobbled from many different examples and sources you can find in the "Resources" section below.
+
+# TODO / Bugs / Improvements / Features
+
+- Fix naming
+- Bugs
+  1. Fix naming
+  2. Prevent overwriting in DynamoDB
+    - This will allow me to reserve words
+- Features
+  1. Implement custom domain support
+  2. Consider authentication using Cognito
+    - Cons: More infra to manage and understand
+  3. Batch operation. Support submitting multiple urls
+- Speed Improvement
+  1. Hash URL to speed up`fetch or create`. I haven't tested lookup speeds using just URL. But I assume if I use a checksum of the URL I could get a minor speed improvement.
 - Learn more about what I am doing
   - I really have no clue; but it works!
 
@@ -26,6 +41,7 @@ Cannot use Go lang because you cannot invoke functions locally, though I didn't 
 
 - Serverless
 - Node.js
+- AWS IAM
 - AWS Lambda
 - AWS DynamoDB
 
@@ -43,13 +59,56 @@ brew cask install java
 
 ```sh
 yarn install
-sls dynamodb install
+sls dynamodb install --stage dev
 ```
 
-# Start
+# Start Offline
+
+First run:
+
+```sh
+sls offline start --migrate --seed --stage dev --region ap-southeast-1
+```
+
+Subsequent runs:
 
 ```sh
 sls offline start --stage dev --region ap-southeast-1
+```
+
+Sometimes it fails to start, what helps is reinstalling `dynamodb`:
+
+```sh
+rm .dynamodb/shared-local-instance.db
+sls dynamodb remove
+sls dynamodb install --stage dev
+```
+
+# Testing
+
+```sh
+curl -v http://localhost:3000/
+```
+
+## Create Short URL (Without Authentication)
+
+`serverless-offline` doesn't support `aws_iam` authentication, so feel free to ignore if testing online.
+
+To disable authentication, disable/delete the `authorizer: aws_iam` line in `serverless.yml`
+
+
+```sh
+curl -v -H "Content-Type:application/json" http://localhost:3000/ --data "{ \"url\": \"http://example.com/$RANDOM\" }"
+```
+
+## Create Short URL (With Authentication)
+
+Enable/Add the `authorizer: aws_iam` line in `serverless.yml`.
+
+Because we need to authenticate in order to create a short url see (test.js is not yet implemented):
+
+```sh
+./test.js --region ap-southeast-1 http://localhost:3000/ http://example.com/$RANDOM
 ```
 
 # Deploy
@@ -58,22 +117,35 @@ sls offline start --stage dev --region ap-southeast-1
 SLS_DEBUG=* sls deploy --stage dev --region ap-southeast-1
 ```
 
-## You need to seed the counter
+# Custom Domain
 
-# Testing
+I couldn't use Namecheap because, AWS Custom Domain requires the `A Record` to support an `Alias Target`. So I pointed my Nameservers to AWS Route 53.
 
-## Default
+AWS Route 53 doesn't support `.app` domains, so I couldn't transfer the domain over.
+
+- Create Route 53 Hosted Zone
+- Get nameserver records
+- Point nameservers in Namecheap to new custom records
+- [Create ACM Certificate](https://docs.aws.amazon.com/apigateway/latest/developerguide/how-to-custom-domains-prerequisites.html)
+- [Create Edge-Optimized Custom Domain Name](https://docs.aws.amazon.com/apigateway/latest/developerguide/how-to-edge-optimized-custom-domain-name.html)
+
+Command line to check NS:
 
 ```sh
-curl -v http://localhost:3000/
+host -t ns deepthought.app
 ```
 
-```sh
-curl -v -H "Content-Type:application/json" http://localhost:3000/ --data "{ \"url\": \"http://example.com/$RANDOM\" }"
-```
+- https://serverless.com/blog/serverless-api-gateway-domain/
+
+In `parameters.yml`
 
 ```sh
-curl -v http://localhost:3000/2
+custom:
+  customDomain:
+    domainName: <registered_domain_name>
+    basePath: ''
+    stage: ${opt:stage}
+    createRoute53Record: true
 ```
 
 # DynamoDB Shell
@@ -110,7 +182,7 @@ Put Item:
 var params = {
     TableName: 'counters-dev',
     Item: {
-        name: "url-shortener"
+        name: "url-shortener",
         value: -1,
     },
     ReturnValues: "ALL_OLD",
@@ -139,18 +211,26 @@ docClient.get(params, function(err, data) {
 # AWS Console Links
 
 - https://console.aws.amazon.com/iam/home
-- https://ap-southeast-1.console.aws.amazon.com/cloudformation/home?region=ap-southeast-1
-- https://ap-southeast-1.console.aws.amazon.com/dynamodb/home?region=ap-southeast-1
-- https://ap-southeast-1.console.aws.amazon.com/lambda/home?region=ap-southeast-1#/functions
+- https://console.aws.amazon.com/apigateway/home?region=ap-southeast-1#
+- https://console.aws.amazon.com/cloudformation/home?region=ap-southeast-1
+- https://console.aws.amazon.com/dynamodb/home?region=ap-southeast-1
+- https://console.aws.amazon.com/lambda/home?region=ap-southeast-1#/functions
+- https://console.aws.amazon.com/route53/home?region=ap-southeast-1
+- https://console.aws.amazon.com/acm/home?region=us-east-1#/firstrun/
 
 # Resources
 
+- https://www.aizatto.com/code/aws/dynamodb
+- https://www.aizatto.com/code/serverless
 - https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/DynamoDB.html
 - https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_AttributeDefinition.html
+- https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-cognito-userpool.html#cfn-cognito-userpool-poolname
 - https://github.com/serverless/examples/blob/master/aws-node-rest-api-with-dynamodb-and-offline/
 - https://martinstapel.com/how-to-autoincrement-in-dynamo-db-if-you-really-need-to/
 - https://serverless.com/framework/docs/providers/aws/guide/resources/#configuration
 - https://stackoverflow.com/questions/50391825/cant-insert-data-into-dynamodb-using-new-nodejs-8-10
+- https://serverless-stack.com/
+- https://serverless.com/framework/docs/providers/aws/events/cognito-user-pool/
 
 # Serverless Plugins
 
@@ -164,3 +244,26 @@ docClient.get(params, function(err, data) {
 - Using initial offset of `asa` or `31793`
 - Using `asa` so I start with using the left side of the keyboard
 - I want to start with an offset to reserve shorter urls
+
+# Developer Notes
+
+Why JavaScript?
+
+- I originally wanted to use Go Lang because:
+  - I like the language
+  - Typesafe
+  - Reusable skills for building other backend/frontend systems
+  - No Promises, or indent hell
+  - `gofmt` for consistency
+- Unfortunately "serverless-offline" doesn't support Go Lang
+- I was already familiar with JavaScript
+
+Naming conventions:
+
+- ${stage} as a prefix
+  - API Gateway uses it as the basepath, so I figure we should just use it in the beginning
+  - Visually groups the same stage together
+
+Should the default be to reuse a shorturl or create a new one?
+
+- Currently opting to create a new one
