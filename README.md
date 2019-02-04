@@ -24,7 +24,7 @@ Cannot use Go lang because you cannot invoke functions locally, though I didn't 
   - https://www.aizatto.com/notes/aws/dynamodb/
 - This code isn't perfect. It's been cobbled from many different examples and sources you can find in the "Resources" section below.
 - Not familiar with the best optimizations
-- Serverless (as in the tool) will drop your tables if you change the name of the tables. You haev been warned.
+- Serverless (as in the tool) will drop your tables if you change the name of the tables. You have been warned.
 - I don't fully understand the limitations of DynamoDB
   - Costs
   - Performance limitations
