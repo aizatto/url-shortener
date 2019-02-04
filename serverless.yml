@@ -18,6 +18,7 @@ service: url-shortener # NOTE: update this with your service name
 # frameworkVersion: "=X.X.X"
 
 plugins:
+  - serverless-stack-output
   - serverless-domain-manager
   - serverless-dynamodb-local
   - serverless-offline
@@ -28,7 +29,7 @@ provider:
   environment:
     ENDPOINT: ${file(./secrets.json):ENDPOINT, "http://localhost:3000/"}
     DOMAIN_NAME: ${file(./secrets.json):DOMAIN_NAME}
-    TABLE_NAME: ${opt:stage}-${self:service}-test
+    TABLE_NAME: ${opt:stage}-${self:service}
     TABLE_INDEX_NAME: ${opt:stage}-${self:service}-URLIndex
     COUNTER_TABLE_NAME: ${opt:stage}-${self:service}-counter
   memorySize: 128
@@ -43,6 +44,7 @@ provider:
         - dynamodb:DeleteItem
       Resource: 
         - "arn:aws:dynamodb:${opt:region}:*:table/${self:provider.environment.TABLE_NAME}"
+        - "arn:aws:dynamodb:${opt:region}:*:table/${self:provider.environment.TABLE_NAME}/index/${self:provider.environment.TABLE_INDEX_NAME}"
         - "arn:aws:dynamodb:${opt:region}:*:table/${self:provider.environment.COUNTER_TABLE_NAME}"
 
 
@@ -201,7 +203,7 @@ resources:
         ProvisionedThroughput:
           ReadCapacityUnits: 1
           WriteCapacityUnits: 1
-        
+
 custom:
   dynamodb:
     start:
@@ -219,4 +221,5 @@ custom:
     stage: ${opt:stage}
     createRoute53Record: true
     enabled: ${opt:custom-domain-enabled, 'false'}
-    
+  output:
+    file: build/stack.yml

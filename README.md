@@ -135,6 +135,13 @@ Because we need to authenticate in order to create a short url see (test.js is n
 SLS_DEBUG=* sls deploy --stage dev --region ap-southeast-1
 ```
 
+## With Custom Domain Name
+
+```sh
+SLS_DEPLOY=* sls create_domain --stage dev --region ap-southeast-1 --custom-domain-enabled true
+SLS_DEPLOY=* sls deploy --stage dev --region ap-southeast-1 --custom-domain-enabled true
+```
+
 # Create IAM User
 
 In order to use authentication you have to create a new user with the correct policy.
