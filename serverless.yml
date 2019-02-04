@@ -27,8 +27,8 @@ provider:
   name: aws
   runtime: nodejs8.10
   environment:
-    ENDPOINT: ${file(./secrets.json):ENDPOINT, "http://localhost:3000/"}
-    DOMAIN_NAME: ${file(./secrets.json):DOMAIN_NAME}
+    ENDPOINT: ${file(./secrets.json):${opt:stage}.ENDPOINT, "http://localhost:3000/"}
+    DOMAIN_NAME: ${file(./secrets.json):${opt:stage}.DOMAIN_NAME}
     TABLE_NAME: ${opt:stage}-${self:service}
     TABLE_INDEX_NAME: ${opt:stage}-${self:service}-URLIndex
     COUNTER_TABLE_NAME: ${opt:stage}-${self:service}-counter
@@ -220,6 +220,6 @@ custom:
     basePath: ''
     stage: ${opt:stage}
     createRoute53Record: true
-    enabled: ${opt:custom-domain-enabled, 'false'}
+    enabled: ${file(./secrets.json):${opt:stage}.enabled, 'false'}
   output:
     file: build/stack.yml

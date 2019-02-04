@@ -129,6 +129,8 @@ Because we need to authenticate in order to create a short url see (test.js is n
 ./test.js --region ap-southeast-1 http://localhost:3000/ http://example.com/$RANDOM
 ```
 
+[Example](https://gist.github.com/aizatto/e0bda80e78dd18765b3fc96772bd0ec8) on how to call it from your code.
+
 # Deploy
 
 ```sh
@@ -137,9 +139,11 @@ SLS_DEBUG=* sls deploy --stage dev --region ap-southeast-1
 
 ## With Custom Domain Name
 
+Configure `./secrets.json`:
+
 ```sh
-SLS_DEPLOY=* sls create_domain --stage dev --region ap-southeast-1 --custom-domain-enabled true
-SLS_DEPLOY=* sls deploy --stage dev --region ap-southeast-1 --custom-domain-enabled true
+SLS_DEPLOY=* sls create_domain --stage dev --region ap-southeast-1
+SLS_DEPLOY=* sls deploy --stage dev --region ap-southeast-1
 ```
 
 # Create IAM User
