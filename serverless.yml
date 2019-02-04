@@ -42,9 +42,9 @@ provider:
         - dynamodb:UpdateItem
         - dynamodb:DeleteItem
       Resource: 
-        - "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.TABLE_NAME}"
-        - "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/counters-${opt:stage}"
-  
+        - "arn:aws:dynamodb:${opt:region}:*:table/${self:provider.environment.TABLE_NAME}"
+        - "arn:aws:dynamodb:${opt:region}:*:table/${self:provider.environment.COUNTER_TABLE_NAME}"
+
 
 # you can overwrite defaults here
 #  stage: dev

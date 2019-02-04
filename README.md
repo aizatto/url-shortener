@@ -31,8 +31,10 @@ Cannot use Go lang because you cannot invoke functions locally, though I didn't 
   - Scaling
   - Backup
   - [Best Practices](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/best-practices.html)
+- Possible scaling problems
+  - We are using a singular key to keep track of the counter
 
-# TODO / Bugs / Improvements / Features
+## TODOs, Bugs, Improvements, Features
 
 - Fix naming
 - Bugs
@@ -49,7 +51,7 @@ Cannot use Go lang because you cannot invoke functions locally, though I didn't 
 - Learn more about what I am doing
   - I really have no clue; but it works!
 
-# Stack
+## Stack
 
 - Serverless
 - Node.js
@@ -161,6 +163,8 @@ Replace $DOMAIN and $STAGE.
 
 Use the `Access Key ID` and `Secret Access Key` to make requests to your endpoint.
 
+https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-iam-policy-examples-for-api-execution.html
+
 # Custom Domain
 
 I couldn't use Namecheap because, AWS Custom Domain requires the `A Record` to support an `Alias Target`. So I pointed my Nameservers to AWS Route 53.
@@ -203,6 +207,8 @@ custom:
       - Enable "Point-in-time Recovery"
       - Maximum 35 days
       - https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/PointInTimeRecovery_Howitworks.html
+    - AWS Data Pipeline
+      - https://docs.aws.amazon.com/datapipeline/latest/DeveloperGuide/dp-importexport-ddb-part2.html
   - Global Tables
 
 # DynamoDB Shell
