@@ -25,27 +25,28 @@ Cannot use Go lang because you cannot invoke functions locally, though I didn't 
 - This code isn't perfect. It's been cobbled from many different examples and sources you can find in the "Resources" section below.
 - Not familiar with the best optimizations
 - Serverless (as in the tool) will drop your tables if you change the name of the tables. You have been warned.
-- I don't fully understand the limitations of DynamoDB
+- I don't fully understand the limitations of DynamoDB, Lamabda, Serverless
   - Costs
   - Performance limitations
   - Scaling
   - Backup
   - [Best Practices](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/best-practices.html)
-- Possible scaling problems
+- Possible DyanmoDB scaling problems:
   - We are using a singular key to keep track of the counter
+- Investigate why deploying to a different stage creates a new API Gateway
+  - See `Deploy` section for more notes.
 
 ## TODOs, Bugs, Improvements, Features
 
 - Fix naming
 - Bugs
-  1. Fix naming
-  2. Prevent overwriting in DynamoDB
+  1. Reserve short urls
+    - Prevent overwriting in DynamoDB
     - This will allow me to reserve words
 - Features
-  1. Implement custom domain support
-  2. Consider authentication using Cognito
+  1. Consider authentication using Cognito
     - Cons: More infra to manage and understand
-  3. Batch operation. Support submitting multiple urls
+  2. Batch operation. Support submitting multiple urls
 - Speed Improvement
   1. Hash URL to speed up`fetch or create`. I haven't tested lookup speeds using just URL. But I assume if I use a checksum of the URL I could get a minor speed improvement.
 - Learn more about what I am doing
@@ -137,6 +138,13 @@ Because we need to authenticate in order to create a short url see (test.js is n
 SLS_DEBUG=* sls deploy --stage dev --region ap-southeast-1
 ```
 
+Notes on deploying to a different stage:
+
+- Createa a new CloudFormation Stack
+  - ie: `url-shortener-dev` vs `url-shortener-prod`
+- Creates a new API Gateway
+  - I would assume it would create a new stage in API Gateway
+
 ## With Custom Domain Name
 
 Configure `./secrets.json`:
@@ -176,6 +184,8 @@ Use the `Access Key ID` and `Secret Access Key` to make requests to your endpoin
 
 https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-iam-policy-examples-for-api-execution.html
 
+Note: This may take several minutes to be enabled.
+
 # Custom Domain
 
 I couldn't use Namecheap because, AWS Custom Domain requires the `A Record` to support an `Alias Target`. So I pointed my Nameservers to AWS Route 53.
@@ -210,6 +220,8 @@ custom:
 
 # Manual Setup
 
+- Cloudformation
+  - Enable Drift detection
 - DynamoDB
   - https://console.aws.amazon.com/dynamodb/
   - Backup

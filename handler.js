@@ -28,37 +28,52 @@ async function fetchShortURLFromLongURL(longurl) {
   return null;
 }
 
-async function createShortURL(url) {
-  // from https://martinstapel.com/how-to-autoincrement-in-dynamo-db-if-you-really-need-to/
-  const counter = await dynamodb.updatePromise({
-    // TODO: change to a dynamic name
-    TableName: process.env.COUNTER_TABLE_NAME,
-    ReturnValues: 'UPDATED_NEW',
-    ExpressionAttributeValues: {
-      ':a': 1,
-    },
-    ExpressionAttributeNames: {
-      '#v': 'value',
-    },
-    UpdateExpression: 'SET #v = #v + :a',
-    Key: {
-      counterName: 'url-shortener',
-    },
-  });
+async function createShortURL(url, name) {
+  let id = null;
+  if (name) {
+    // limitations to the name;
+    // - needs to be url friendly
+    // - no spaces
+    // - only ascii
+    //
+    // Can test at regexr.com/47rmm
+    const invalidCharacters = name.match(/[^a-zA-Z0-9-_]/g);
+    if (invalidCharacters) {
+      throw new Error(`Invalid characters in name: ${invalidCharacters.join(', ')}`);
+    }
+    id = name;
+  } else {
+    // from https://martinstapel.com/how-to-autoincrement-in-dynamo-db-if-you-really-need-to/
+    const counter = await dynamodb.updatePromise({
+      // TODO: change to a dynamic name
+      TableName: process.env.COUNTER_TABLE_NAME,
+      ReturnValues: 'UPDATED_NEW',
+      ExpressionAttributeValues: {
+        ':a': 1,
+      },
+      ExpressionAttributeNames: {
+        '#v': 'value',
+      },
+      UpdateExpression: 'SET #v = #v + :a',
+      Key: {
+        counterName: 'url-shortener',
+      },
+    });
 
-  const uuid = base58.encode(counter.Attributes.value);
+    id = base58.encode(counter.Attributes.value);
+  }
 
   await dynamodb.putPromise({
     TableName: process.env.TABLE_NAME,
     Item: {
-      id: uuid,
+      id,
       longURL: url,
       createdAt: new Date().getTime(),
     },
     ConditionExpression: 'attribute_not_exists(id)',
   });
 
-  return uuid;
+  return id;
 }
 
 module.exports.create = async (event) => {
@@ -74,10 +89,10 @@ module.exports.create = async (event) => {
     if (data.reuse) {
       uuid = await fetchShortURLFromLongURL(longurl);
       if (!uuid) {
-        uuid = await createShortURL(longurl);
+        uuid = await createShortURL(longurl, data.name);
       }
     } else {
-      uuid = await createShortURL(longurl);
+      uuid = await createShortURL(longurl, data.name);
     }
   } catch (error) {
     console.error(error);
@@ -93,7 +108,7 @@ module.exports.create = async (event) => {
     statusCode: 200,
     body: JSON.stringify({
       id: uuid,
-      url: `${process.env.ENDPOINT}${uuid}`
+      url: `${process.env.ENDPOINT}${uuid}`,
     }),
   };
 };
