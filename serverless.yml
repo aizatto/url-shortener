@@ -1,4 +1,4 @@
-service: url-shortener # NOTE: update this with your service name
+service: url-shortener
 
 plugins:
   - serverless-stack-output
@@ -20,49 +20,26 @@ provider:
     - Effect: Allow
       Action:
         - dynamodb:Query
-        - dynamodb:Scan
         - dynamodb:GetItem
         - dynamodb:PutItem
-        - dynamodb:UpdateItem
-        - dynamodb:DeleteItem
-      Resource: 
-        - "arn:aws:dynamodb:${opt:region}:*:table/${self:provider.environment.TABLE_NAME}"
-        - "arn:aws:dynamodb:${opt:region}:*:table/${self:provider.environment.TABLE_NAME}/index/${self:provider.environment.TABLE_INDEX_NAME}"
-        - "arn:aws:dynamodb:${opt:region}:*:table/${self:provider.environment.COUNTER_TABLE_NAME}"
+      Resource:
+        - { "Fn::GetAtt": ["urlsTable", "Arn" ] }
+        - "Fn::Join":
+          - "/"
+          - - { "Fn::GetAtt": ["urlsTable", "Arn" ] }
+            - "index"
+            - ${self:provider.environment.TABLE_INDEX_NAME}
+        - { "Fn::GetAtt": ["counterTable", "Arn" ] }
 
-
-# you can overwrite defaults here
-#  stage: dev
-#  region: us-east-1
-
-# you can add statements to the Lambda function's IAM Role here
-#  iamRoleStatements:
-#    - Effect: "Allow"
-#      Action:
-#        - "s3:ListBucket"
-#      Resource: { "Fn::Join" : ["", ["arn:aws:s3:::", { "Ref" : "ServerlessDeploymentBucket" } ] ]  }
-#    - Effect: "Allow"
-#      Action:
-#        - "s3:PutObject"
-#      Resource:
-#        Fn::Join:
-#          - ""
-#          - - "arn:aws:s3:::"
-#            - "Ref" : "ServerlessDeploymentBucket"
-#            - "/*"
-
-# you can define service wide environment variables here
-#  environment:
-#    variable1: value1
-
-# you can add packaging information here
-#package:
-#  include:
-#    - include-me.js
-#    - include-me-dir/**
-#  exclude:
-#    - exclude-me.js
-#    - exclude-me-dir/**
+# Multiple ways to write this
+#        - "arn:aws:dynamodb:${opt:region}:*:table/${self:provider.environment.COUNTER_TABLE_NAME}"
+#        - { "Fn::GetAtt": ["counterTable", "Arn" ] }
+#        - Fn::Join:
+#            - ""
+#            - - "arn:aws:dynamodb:"
+#              - ${opt:region}
+#              - ":*:/table/"
+#              - Ref: counterTable
 
 functions:
   root:
