@@ -4,6 +4,9 @@ const dynamodb = require('./dynamodb');
 // from https://stackoverflow.com/questions/50391825/cant-insert-data-into-dynamodb-using-new-nodejs-8-10
 dynamodb.getPromise = promisify(dynamodb.get);
 dynamodb.queryPromise = promisify(dynamodb.query);
+dynamodb.putPromise = promisify(dynamodb.put);
+dynamodb.updatePromise = promisify(dynamodb.update);
+
 
 module.exports.root = async () => ({
   statusCode: 301,
@@ -77,9 +80,6 @@ async function createShortURL(url, name) {
 }
 
 module.exports.create = async (event) => {
-  dynamodb.putPromise = promisify(dynamodb.put);
-  dynamodb.updatePromise = promisify(dynamodb.update);
-
   const data = JSON.parse(event.body);
   let uuid = null;
 

@@ -39,10 +39,6 @@ Cannot use Go lang because you cannot invoke functions locally, though I didn't 
 ## TODOs, Bugs, Improvements, Features
 
 - Fix naming
-- Bugs
-  1. Reserve short urls
-    - Prevent overwriting in DynamoDB
-    - This will allow me to reserve words
 - Features
   1. Consider authentication using Cognito
     - Cons: More infra to manage and understand
