@@ -13,8 +13,8 @@
     "eslint-config-airbnb-base": "^13.1.0",
     "eslint-config-aizatto": "https://github.com/aizatto/eslint-config-aizatto",
     "eslint-plugin-import": "^2.16.0",
-    "serverless-domain-manager": "^2.6.13",
-    "serverless-dynamodb-local": "0.2.30",
+    "serverless-domain-manager": "^3.1.0",
+    "serverless-dynamodb-local": "0.2.36",
     "serverless-offline": "^4.2.1",
     "serverless-stack-output": "^0.2.3"
   }
