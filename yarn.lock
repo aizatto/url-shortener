@@ -18,6 +18,18 @@
     esutils "^2.0.2"
     js-tokens "^4.0.0"
 
+"@types/chai-spies@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@types/chai-spies/-/chai-spies-1.0.0.tgz#1442daa924d2a8c3f20253db5e5e8fdd1fd4f229"
+  integrity sha512-Bj/froHomMnlAPEYEeqhmSuNSjTWW/VuSvCVdhLdcb67+dy4ffjTR6fC0YYw9tHP6KR3U8fkF1mgzmzlChHc5Q==
+  dependencies:
+    "@types/chai" "*"
+
+"@types/chai@*":
+  version "4.1.7"
+  resolved "https://registry.yarnpkg.com/@types/chai/-/chai-4.1.7.tgz#1b8e33b61a8c09cbe1f85133071baa0dbf9fa71a"
+  integrity sha512-2Y8uPt0/jwjhQ6EiluT0XCri1Dbplr0ZxfFXUz+ye13gaqE8u5gL5ppao1JrUYr9cIip5S6MvQzBS7Kke7U9VA==
+
 accept@2.x.x:
   version "2.1.4"
   resolved "https://registry.yarnpkg.com/accept/-/accept-2.1.4.tgz#887af54ceee5c7f4430461971ec400c61d09acbb"
@@ -130,7 +142,7 @@ block-stream@*:
   dependencies:
     inherits "~2.0.0"
 
-bluebird@^3.4.6:
+bluebird@^3.0.6, bluebird@^3.4.6:
   version "3.5.3"
   resolved "https://registry.yarnpkg.com/bluebird/-/bluebird-3.5.3.tgz#7d01c6f9616c9a51ab0f8c549a79dfe6ec33efa7"
   integrity sha512-/qKPUQlaW1OyR51WeCPBvRnAlnZFUJkCSG5HzGnuIqhgyJtF+T94lFnn33eiazjRm2LAHVy2guNnaq48X9SJuw==
@@ -210,7 +222,7 @@ catbox@7.x.x:
     hoek "4.x.x"
     joi "10.x.x"
 
-chalk@^2.0.0, chalk@^2.0.1, chalk@^2.1.0, chalk@^2.4.2:
+chalk@^2.0.0, chalk@^2.1.0, chalk@^2.4.1, chalk@^2.4.2:
   version "2.4.2"
   resolved "https://registry.yarnpkg.com/chalk/-/chalk-2.4.2.tgz#cd42541677a54333cf541a49108c1432b44c9424"
   integrity sha512-Mti+f9lpJNcwF4tWV8/OrTTtF1gZi+f8FqlyAdouralcFWFQWF2+NgCHShjkCb+IFBLq9buZwE1xckQU4peSuQ==
@@ -336,7 +348,7 @@ doctrine@^2.1.0:
   dependencies:
     esutils "^2.0.2"
 
-dynamodb-localhost@^0.0.5:
+dynamodb-localhost@0.0.5:
   version "0.0.5"
   resolved "https://registry.yarnpkg.com/dynamodb-localhost/-/dynamodb-localhost-0.0.5.tgz#2dfcd5c0ac83e534327f5d5da5dada8d31310755"
   integrity sha1-LfzVwKyD5TQyf11dpdrajTExB1U=
@@ -345,6 +357,14 @@ dynamodb-localhost@^0.0.5:
     progress "^1.1.8"
     rmdir "^1.2.0"
     tar "^2.0.0"
+
+dynamodb-migrations@0.0.10:
+  version "0.0.10"
+  resolved "https://registry.yarnpkg.com/dynamodb-migrations/-/dynamodb-migrations-0.0.10.tgz#3b2240997a9db0423aeb0daccef12ea428c728a1"
+  integrity sha1-OyJAmXqdsEI66w2szvEupCjHKKE=
+  dependencies:
+    bluebird "^3.0.6"
+    mkdirp "^0.5.0"
 
 ecdsa-sig-formatter@1.0.10:
   version "1.0.10"
@@ -1430,23 +1450,27 @@ sax@>=0.6.0:
   resolved "https://registry.yarnpkg.com/semver/-/semver-5.6.0.tgz#7e74256fbaa49c75aa7c7a205cc22799cac80004"
   integrity sha512-RS9R6R35NYgQn++fkDWaOmqGoj4Ek9gGs+DPxNUZKuwE183xjJroKvyo1IzVFeXvUrvmALy6FWD5xrdJT25gMg==
 
-serverless-domain-manager@^2.6.13:
-  version "2.6.13"
-  resolved "https://registry.yarnpkg.com/serverless-domain-manager/-/serverless-domain-manager-2.6.13.tgz#64e398cbd26b113e096887eb063a43caf1ed12a1"
-  integrity sha512-oMV4OPbTo9IWzaRwvQl8H+sdXGCNraO+92g48RrS1AmbRQf9+w6gycNy3o+uE/LlAQnYrbuNSE1VD0zeKRh4uw==
+serverless-domain-manager@^3.1.0:
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/serverless-domain-manager/-/serverless-domain-manager-3.1.0.tgz#878c07e838158486d7e597e8fc68846c4b87afaa"
+  integrity sha512-XIQK+HRGr3kvGY/8LUVWpV/WSYbXIKh0lo2tP0ml2E5PSfM9W6OGTmMdya5rmu7fjDUor8gT0+qoTkd0yWrTWw==
   dependencies:
+    "@types/chai-spies" "^1.0.0"
     aws-sdk "^2.177.0"
-    chalk "^2.0.1"
+    chalk "^2.4.1"
 
-serverless-dynamodb-local@0.2.30:
-  version "0.2.30"
-  resolved "https://registry.yarnpkg.com/serverless-dynamodb-local/-/serverless-dynamodb-local-0.2.30.tgz#3b6de306a318600d7844605f7e650974a9e0c11f"
-  integrity sha512-dEeyfrDmXWM6KEqofVPuqVraZTenhlOjAsDjVrr2Kecq/mJs4FxeoDq9X/UriuZLENNzAAVX4BRt1HTX/JdRGg==
+serverless-dynamodb-local@0.2.36:
+  version "0.2.36"
+  resolved "https://registry.yarnpkg.com/serverless-dynamodb-local/-/serverless-dynamodb-local-0.2.36.tgz#367603ed4feb15c8a4ab51e4018a7524b1a68736"
+  integrity sha512-0OqUg1du6mZZYgZOkxFETboHQKlIFVygewyh1PY4R5Oafv5vidY6SOupl30yFQR7DtRDqgO3JaciPmJK81MNDA==
   dependencies:
     aws-sdk "^2.7.0"
     bluebird "^3.4.6"
-    dynamodb-localhost "^0.0.5"
+    dynamodb-localhost "0.0.5"
+    dynamodb-migrations "0.0.10"
     lodash "^4.17.0"
+    mkdirp "^0.5.0"
+    tar "^2.0.0"
 
 serverless-offline@^4.2.1:
   version "4.2.1"
