@@ -1,5 +1,7 @@
 # URL Shortener
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/aizatto/url-shortener.svg)](https://greenkeeper.io/)
+
 Goal of this project:
 
 - Create a URL Shortener
