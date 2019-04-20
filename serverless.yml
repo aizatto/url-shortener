@@ -22,6 +22,7 @@ provider:
         - dynamodb:Query
         - dynamodb:GetItem
         - dynamodb:PutItem
+        - dynamodb:UpdateItem
       Resource:
         - { "Fn::GetAtt": ["urlsTable", "Arn" ] }
         - "Fn::Join":
@@ -130,9 +131,9 @@ custom:
             sources: [./seed/counters.json]
   customDomain:
     domainName: ${self:provider.environment.DOMAIN_NAME}
-    basePath: ${file(./secrets.json):${opt:stage}.BASE_PATH, 'false'}
+    basePath: ${file(./secrets.json):${opt:stage}.BASE_PATH, ''}
     stage: ${opt:stage}
     createRoute53Record: true
-    enabled: ${file(./secrets.json):${opt:stage}.enabled, 'false'}
+    enabled: ${file(./secrets.json):${opt:stage}.enabled, false}
   output:
     file: build/stack.yml
