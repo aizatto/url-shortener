@@ -1,24 +1,20 @@
-const base58 = require('base58');
-const { promisify } = require('util');
-const dynamodb = require('./dynamodb');
-// from https://stackoverflow.com/questions/50391825/cant-insert-data-into-dynamodb-using-new-nodejs-8-10
-dynamodb.getPromise = promisify(dynamodb.get);
-dynamodb.queryPromise = promisify(dynamodb.query);
-dynamodb.putPromise = promisify(dynamodb.put);
-dynamodb.updatePromise = promisify(dynamodb.update);
+import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
+import * as base58 from 'base58';
+import 'source-map-support/register';
 
+const { client: dynamodb } = require('./dynamodb');
 
-module.exports.root = async () => ({
+export const root = async () => ({
   statusCode: 301,
   headers: {
     Location: 'https://www.deepthoughtapp.com/',
   },
 });
 
-async function fetchShortURLFromLongURL(longurl) {
+async function fetchShortURLFromLongURL(longurl: string): Promise<string | null> {
   const result = await dynamodb.queryPromise({
-    TableName: process.env.TABLE_NAME,
-    IndexName: process.env.TABLE_INDEX_NAME,
+    TableName: process.env.URLS_TABLE,
+    IndexName: process.env.LONGURL_INDEX,
     KeyConditionExpression: 'longURL = :longurl',
     ExpressionAttributeValues: { ':longurl': longurl },
     Limit: 1,
@@ -31,7 +27,7 @@ async function fetchShortURLFromLongURL(longurl) {
   return null;
 }
 
-async function createShortURL(url, name) {
+async function createShortURL(url: string, name?: string): Promise<string> {
   let id = null;
   if (name) {
     // limitations to the name;
@@ -49,7 +45,7 @@ async function createShortURL(url, name) {
     // from https://martinstapel.com/how-to-autoincrement-in-dynamo-db-if-you-really-need-to/
     const counter = await dynamodb.updatePromise({
       // TODO: change to a dynamic name
-      TableName: process.env.COUNTER_TABLE_NAME,
+      TableName: process.env.COUNTERS_TABLE,
       ReturnValues: 'UPDATED_NEW',
       ExpressionAttributeValues: {
         ':a': 1,
@@ -67,11 +63,11 @@ async function createShortURL(url, name) {
   }
 
   await dynamodb.putPromise({
-    TableName: process.env.TABLE_NAME,
+    TableName: process.env.URLS_TABLE,
     Item: {
       id,
       longURL: url,
-      createdAt: new Date().getTime(),
+      createdAt: new Date().toISOString(),
     },
     ConditionExpression: 'attribute_not_exists(id)',
   });
@@ -79,20 +75,21 @@ async function createShortURL(url, name) {
   return id;
 }
 
-module.exports.create = async (event) => {
-  const data = JSON.parse(event.body);
+export const create = async (
+  {url, name, reuse}: { url: string, name?: string, reuse?: boolean }
+): Promise<APIGatewayProxyResult> => {
   let uuid = null;
 
   try {
-    const longurl = data.url;
+    const longurl = url;
     // Reuse an existing shorturl
-    if (data.reuse) {
+    if (reuse) {
       uuid = await fetchShortURLFromLongURL(longurl);
       if (!uuid) {
-        uuid = await createShortURL(longurl, data.name);
+        uuid = await createShortURL(longurl, name);
       }
     } else {
-      uuid = await createShortURL(longurl, data.name);
+      uuid = await createShortURL(longurl, name);
     }
   } catch (error) {
     console.error(error);
@@ -101,6 +98,7 @@ module.exports.create = async (event) => {
   if (!uuid) {
     return {
       statusCode: 500,
+      body: null,
     };
   }
 
@@ -113,12 +111,12 @@ module.exports.create = async (event) => {
   };
 };
 
-
-module.exports.redirect = async (event) => {
+export const redirect = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+  const id = event.pathParameters.id;
   const result = await dynamodb.getPromise({
-    TableName: process.env.TABLE_NAME,
+    TableName: process.env.URLS_TABLE,
     Key: {
-      id: event.pathParameters.base58id,
+      id,
     },
   });
 
@@ -127,7 +125,11 @@ module.exports.redirect = async (event) => {
     // But that isn't a really user friendly.
     // We should ideally hand them over to a page
     return {
-      statusCode: 404,
+      statusCode: 301,
+      headers: {
+        Location: `https://www.deepthoughtapp.com/search/?q=${id}`,
+      },
+      body: null,
     };
   }
 
@@ -136,5 +138,6 @@ module.exports.redirect = async (event) => {
     headers: {
       Location: result.Item.longURL,
     },
+    body: null,
   };
 };

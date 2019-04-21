@@ -1,0 +1,109 @@
+service:
+  name: url-shortener-dynamodb
+  awsService: dynamodb
+  awsName: url-shortener-${opt:stage} 
+
+plugins:
+  - serverless-dynamodb-local
+
+provider:
+  name: aws
+  runtime: nodejs8.10
+  memorySize: 128
+  timeout: 60
+  apiName: ${self:service.awsName}
+  tags:
+    product: ${self:service.awsName}
+  deploymentBucket:
+    tags:
+      product: ${self:service.awsName}
+  stackName: ${self:service.awsName}-${self:service.awsService}
+  stackTags:
+    product: ${self:service.awsName}
+  environment:
+    COUNTERS_TABLE: ${self:custom.DYNAMODB.COUNTERS_TABLE}
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:PutItem
+      Resource:
+        - "Fn::GetAtt": ["counterTable", "Arn" ]
+
+resources:
+  Resources:
+    urlsTable:
+      Type: 'AWS::DynamoDB::Table'
+      DeletionPolicy: Retain
+      Properties:
+        TableName: ${self:custom.DYNAMODB.URLS_TABLE}
+        AttributeDefinitions:
+          -
+            AttributeName: id
+            AttributeType: S
+          -
+            AttributeName: longURL
+            AttributeType: S
+        KeySchema:
+          -
+            AttributeName: id
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+        GlobalSecondaryIndexes:
+          - IndexName: ${self:custom.DYNAMODB.LONGURL_INDEX}
+            KeySchema:
+              - AttributeName: longURL
+                KeyType: HASH
+            Projection:
+              ProjectionType: "ALL"
+            ProvisionedThroughput:
+              ReadCapacityUnits: 1
+              WriteCapacityUnits: 1
+    counterTable:
+      Type: 'AWS::DynamoDB::Table'
+      DeletionPolicy: Retain
+      Properties:
+        TableName: ${self:custom.DYNAMODB.COUNTERS_TABLE}
+        AttributeDefinitions:
+          -
+            AttributeName: counterName
+            AttributeType: S
+        KeySchema:
+          -
+            AttributeName: counterName
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+  Outputs:
+    urlsTable:
+      Value: 
+        "Fn::GetAtt": ["urlsTable", "Arn" ]
+    longurlIndex:
+      Value: 
+        "Fn::Join":
+          - "/"
+          - - { "Fn::GetAtt": ["urlsTable", "Arn" ] }
+            - "index"
+            - ${self:custom.DYNAMODB.LONGURL_INDEX}
+    counterTable:
+      Value: 
+        "Fn::GetAtt": ["counterTable", "Arn" ]
+
+functions:
+  init:
+    handler: handler.init
+    name: ${self:provider.stackName}-init
+
+custom:
+  DYNAMODB: ${file(./tables.js)}
+  dynamodb:
+    start:
+      inMemory: true
+    seed:
+      counters: # This key name is irrelevant
+        sources:
+          -
+            table: ${self:custom.DYNAMODB.COUNTERS_TABLE}
+            sources: [./seed/counters.json]

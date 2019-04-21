@@ -1,0 +1,66 @@
+service:
+  name: url-shortener-lambdas
+  awsService: lambdas
+  awsName: url-shortener-${opt:stage} 
+
+plugins:
+  - serverless-domain-manager
+  - serverless-webpack
+  - serverless-offline
+
+provider:
+  name: aws
+  runtime: nodejs8.10
+  apiName: ${self:service.awsName}
+  tags:
+    product: ${self:service.awsName}
+  deploymentBucket:
+    tags:
+      product: ${self:service.awsName}
+  stackName: ${self:service.awsName}-${self:service.awsService}
+  stackTags:
+    product: ${self:service.awsName}
+  environment:
+    ENDPOINT: ${file(./secrets.json):${opt:stage}.ENDPOINT, "http://localhost:3000/"}
+    DOMAIN_NAME: ${file(./secrets.json):${opt:stage}.DOMAIN_NAME}
+    URLS_TABLE: ${self:custom.DYNAMODB.URLS_TABLE}
+    LONGURL_INDEX: ${self:custom.DYNAMODB.LONGURL_INDEX}
+    COUNTERS_TABLE: ${self:custom.DYNAMODB.COUNTERS_TABLE}
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+      Resource:
+        - ${cf.ap-southeast-1:url-shortener-${opt:stage}-dynamodb.urlsTable}
+        - ${cf.ap-southeast-1:url-shortener-${opt:stage}-dynamodb.longurlIndex}
+        - ${cf.ap-southeast-1:url-shortener-${opt:stage}-dynamodb.counterTable}
+
+functions:
+  root:
+    handler: src/handler.root
+    events:
+      - http:
+          path: /
+          method: get
+
+  create:
+    handler: src/handler.create
+    name: ${self:service.awsName}-create
+
+  redirect:
+    handler: src/handler.redirect
+    events:
+      - http:
+          path: /{id}
+          method: get
+
+custom:
+  DYNAMODB: ${file(./../aws-dynamodb/tables.js)}
+  customDomain:
+    domainName: ${self:provider.environment.DOMAIN_NAME}
+    basePath: ${file(./secrets.json):${opt:stage}.BASE_PATH, ''}
+    stage: ${opt:stage}
+    enabled: ${file(./secrets.json):${opt:stage}.enabled, false}
